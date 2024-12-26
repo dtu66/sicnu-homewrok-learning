@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="learn.qm20211108909636.app.dao.ContentDao">
+<!--DROP TABLE IF EXISTS content;
+CREATE TABLE IF NOT EXISTS content(
+    id INT PRIMARY KEY NOT NULL AUTO_INCREMENT,
+    chapter_id INT,
+    chapter_title VARCHAR(255),
+    chapter_text MEDIUMTEXT,
+    chapter_image VARCHAR(255),
+    hits INT
+);-->
+    <insert id="insert" parameterType="learn.qm20211108909636.app.entity.Content">
+        INSERT INTO content(chapter_id, chapter_title, chapter_text, chapter_image, hits)
+        VALUES(#{chapterId}, #{chapterTitle}, #{chapterText}, #{chapterImage}, 0)
+    </insert>
+
+    <delete id="delete" parameterType="int">
+        DELETE FROM content WHERE id = #{id}
+    </delete>
+
+    <update id="update" parameterType="learn.qm20211108909636.app.entity.Content">
+        UPDATE content
+        SET chapter_id = #{chapterId},
+            chapter_title = #{chapterTitle},
+            chapter_text = #{chapterText},
+            chapter_image = #{chapterImage},
+            hits = #{hits}
+        WHERE id = #{id}
+    </update>
+
+    <select id="get" parameterType="int" resultMap="contentResultMap">
+        SELECT * FROM content WHERE id = #{id}
+    </select>
+
+    <resultMap id="contentResultMap" type="learn.qm20211108909636.app.entity.Content">
+        <id property="id" column="id"/>
+        <result property="chapterId" column="chapter_id"/>
+        <result property="chapterTitle" column="chapter_title"/>
+        <result property="chapterText" column="chapter_text"/>
+        <result property="chapterImage" column="chapter_image"/>
+        <result property="hits" column="hits"/>
+    </resultMap>
+
+    <resultMap id="contentVoResultMap" type="learn.qm20211108909636.app.vo.ContentVo">
+        <result property="total" column="total"/>
+        <collection property="contents" ofType="learn.qm20211108909636.app.entity.Content" resultMap="contentResultMap"/>
+    </resultMap>
+
+    <select id="searchBriefByPage" resultMap="contentVoResultMap">
+        SELECT
+        (SELECT COUNT(*) FROM content
+        <where>
+            <if test="content.chapterId != null">
+                chapter_id = #{content.chapterId}
+            </if>
+            <if test="content.chapterTitle != null">
+                AND chapter_title LIKE CONCAT('%', #{content.chapterTitle}, '%')
+            </if>
+            <if test="content.chapterText != null">
+                AND chapter_text LIKE CONCAT('%', #{content.chapterText}, '%')
+            </if>
+        </where>
+        ) AS total,
+        id, chapter_id, chapter_title, chapter_image, hits
+        FROM content
+        <where>
+            <if test="content.chapterId != null">
+                chapter_id = #{content.chapterId}
+            </if>
+            <if test="content.chapterTitle != null">
+                AND chapter_title LIKE CONCAT('%', #{content.chapterTitle}, '%')
+            </if>
+            <if test="content.chapterText != null">
+                AND chapter_text LIKE CONCAT('%', #{content.chapterText}, '%')
+            </if>
+        </where>
+        LIMIT #{start}, #{size}
+    </select>
+
+
+</mapper>

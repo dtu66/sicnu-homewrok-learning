@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="learn.qm20211108909636.app.dao.LogDao">
+    <insert id="insert" parameterType="learn.qm20211108909636.app.entity.Log">
+        INSERT INTO log(user_id, content_id, opTime)
+        VALUES (#{userId}, #{contentId}, #{opTime})
+    </insert>
+
+    <delete id="delete" parameterType="java.lang.Integer">
+        DELETE FROM log
+        WHERE id = #{id}
+    </delete>
+
+    <update id="update" parameterType="learn.qm20211108909636.app.entity.Log">
+        UPDATE log
+        <set>
+            <if test="userId != null">log_type = #{user_id},</if>
+            <if test="contentId != null">log_content = #{content_id},</if>
+            <if test="opTime != null">log_time = #{opTime},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="get" parameterType="java.lang.Integer" resultType="learn.qm20211108909636.app.entity.Log">
+        SELECT *
+        FROM log
+        WHERE id = #{id}
+    </select>
+
+    <resultMap id="logResultMap" type="learn.qm20211108909636.app.entity.Log">
+        <id property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="contentId" column="content_id"/>
+        <result property="opTime" column="opTime"/>
+    </resultMap>
+
+    <select id="getUserStudyLog" resultMap="logResultMap">
+        SELECT *
+        FROM log
+        WHERE user_id = #{userId}
+    </select>
+    <select id="getUserStudiedId" resultType="integer">
+        SELECT DISTINCT content_id
+        FROM log
+        WHERE user_id = #{userId}
+    </select>
+
+    <resultMap id="userLogVoResultMap" type="learn.qm20211108909636.app.vo.UserLogVo">
+        <id column="userId" property="userId"/>
+        <result column="username" property="username"/>
+        <collection property="logs" ofType="learn.qm20211108909636.app.entity.Log" resultMap="logResultMap"/>
+    </resultMap>
+
+    <select id="searchUserLogByPage" resultMap="userLogVoResultMap">
+        SELECT u.id userId, u.username, l.id, l.user_id, l.content_id, l.opTime
+        FROM userinfo u
+        LEFT JOIN log l
+        ON u.id = l.user_id
+        <where>
+            <if test="username != null and username != ''">AND u.username LIKE CONCAT('%', #{username}, '%')</if>
+        </where>
+        LIMIT #{start}, #{size}
+    </select>
+
+    <select id="searchUserLogCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM userinfo u
+        LEFT JOIN log l
+        ON u.id = l.user_id
+        <where>
+            <if test="username != null and username != ''">AND u.username LIKE CONCAT('%', #{username}, '%')</if>
+        </where>
+    </select>
+    <select id="queryLastLog" resultType="learn.qm20211108909636.app.entity.Log">
+        SELECT *
+        FROM log
+        WHERE user_id = #{userId}
+        ORDER BY opTime DESC
+        LIMIT 1
+    </select>
+
+
+</mapper>
